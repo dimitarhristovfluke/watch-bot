@@ -1,9 +1,9 @@
 import axios from "axios";
 import Moment from "moment";
-import G from "../../src/common/config/globals";
+import env from "dotenv";
+env.config();
 
-const webHookUrl =
-  "https://hooks.slack.com/services/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";
+const webHookUrl = process.env.SLACK_WEBHOOK_URL;
 
 export interface SlackAttachmentField {
   title: string;
@@ -70,9 +70,9 @@ export const post = (payload: SlackPayload) => {
   axios
     .post(webHookUrl, payload)
     .then((response: any) => {
-      //
+      process.stdout.write(`posting to slack - ${webHookUrl}\n`);
     })
     .catch((error: any) => {
-      console.log("error sending slack message");
+      process.stdout.write(" - error sending slack message\n");
     });
 };

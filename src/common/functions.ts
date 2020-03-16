@@ -1,5 +1,6 @@
 import moment from "moment";
 import "moment-timezone";
+import * as env from "dotenv";
 import G from "./config/globals";
 
 import Moment from "moment";
@@ -8,6 +9,8 @@ import {
   faTimesCircle
 } from "@fortawesome/free-solid-svg-icons";
 import { ProcDefType } from "../../db/definitions";
+
+env.config();
 
 export const isOlderThan = (date: Date, seconds: number) =>
   !date ||
@@ -37,26 +40,29 @@ export const isAlive = (lastCheck: Date, validityFor: number = 60) =>
     .valueOf();
 
 export const getProcMonItems = (items: ProcDefType[]) =>
-  items.filter(r => r.PROCNAME === "PROCMON");
+  items.filter(r => r.procname === "PROCMON");
 
 export const getProcMonItem = (items: ProcDefType[], serverId: string) =>
-  items.find(r => r.PROCNAME === "PROCMON" && r.CSERVERID === serverId);
+  items.find(r => r.procname === "PROCMON" && r.cserverid === serverId);
 
 export const isProcMonAlive = (items: ProcDefType[], serverId: string) =>
-  isAlive(getProcMonItem(items, serverId).LASTCHECK);
+  isAlive(getProcMonItem(items, serverId).lastcheck);
 
 export const isProcMon = (item: ProcDefType) =>
-  item && item.PROCNAME === "PROCMON";
+  item && item.procname === "PROCMON";
 
 export const cardIcon = (item: ProcDefType) =>
-  isAlive(item.LASTCHECK) ? faCheckCircle : faTimesCircle;
+  isAlive(item.lastcheck) ? faCheckCircle : faTimesCircle;
 
 export const cardColor = (item: ProcDefType) =>
-  isAlive(item.LASTCHECK) ? "green" : "red";
+  isAlive(item.lastcheck) ? "green" : "red";
 
 export const clientZoneOffset = moment.parseZone(new Date()).utcOffset();
 export const toCurrentTimeZone = (date: Date) =>
-  moment(date).add(-G.serverZoneOffset + clientZoneOffset, "minutes");
+  moment(date).add(
+    process.env.SERVER_ZONE_OFFSET + clientZoneOffset,
+    "minutes"
+  );
 
 export const properCase = function(s: string) {
   return s.replace(/\w\S*/g, function(txt) {

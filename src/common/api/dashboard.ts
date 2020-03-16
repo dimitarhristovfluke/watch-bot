@@ -1,6 +1,8 @@
 import axios from "axios";
 import Moment from "moment";
 import * as env from "dotenv";
+import TimeAgo from "javascript-time-ago";
+import en from "javascript-time-ago/locale/en";
 import G from "../config/globals";
 import {
   post,
@@ -9,17 +11,25 @@ import {
 } from "../../../integrations/slack";
 import { ProcessInfo } from "../types";
 import { isOlderThan } from "../functions";
+import moment from "moment";
 
 env.config();
 
+// Add locale-specific relative date/time formatting rules.
+TimeAgo.addLocale(en);
+
+// Create relative date/time formatter.
+const timeAgo = new TimeAgo("en-US");
+
 export const DashboardCheck = function() {
+  process.stdout.write(`${process.env.SERVER_URL}/api/dashboard...`);
   axios
     .get(`${process.env.SERVER_URL}/api/dashboard`)
     .then((response: any) => {
       const data: ProcessInfo[] = response.data;
 
       data.map(p => {
-        switch (p.PROCESSID.toUpperCase()) {
+        switch (p.processid.toUpperCase()) {
           case "PROCMON":
             DoProcMonValidation(p);
             break;
@@ -28,10 +38,10 @@ export const DashboardCheck = function() {
             break;
         }
       });
-      console.log(`${process.env.SERVER_URL}/api/dashboard - DONE`);
+      process.stdout.write(`done\n`);
     })
     .catch((error: any) => {
-      console.log("error");
+      process.stdout.write("error\n");
     });
 };
 
@@ -40,27 +50,27 @@ const sendSlackMessage = (
   msg: string,
   priority: string,
   fields: SlackAttachmentField[]
-) => post(buildSlackMessage(appName, msg, undefined, priority, fields));
+) => post(buildSlackMessage(undefined, msg, undefined, priority, fields)); // appname was appName
 
 const sendProcMonAlert = (p: ProcessInfo, fields: SlackAttachmentField[]) => {
   sendSlackMessage(
-    `${p.PNAME} (${p.PROCESSID})`,
-    `ProcMon is not running on ${p.CSERVERID}`,
+    `${p.pname} (${p.processid})`,
+    `ProcMon is not running on ${p.cserverid}`,
     "High",
     fields
   );
 };
 
 const hasStalled = (p: ProcessInfo) =>
-  p.PENDING && isOlderThan(p.LASTCHECK, 300);
+  p.stalled > 0 || (p.pending && isOlderThan(p.lastcheck, 300));
 
-const hasErrors = (p: ProcessInfo) => !!p.ERRORS;
+const hasErrors = (p: ProcessInfo) => !!p.errors;
 
 const DoProcMonValidation = (p: ProcessInfo) => {
-  if (hasErrors(p))
+  if (hasStalled(p) && process.env.ALERT_ON_STALLED == "yes")
     sendSlackMessage(
-      `${p.PNAME} (${p.PROCESSID})`,
-      `ProcMon is not running on ${p.CSERVERID}`,
+      undefined,
+      `ProcMon is not running on ${p.cserverid}`,
       "High",
       buildProcmonInfo(p)
     );
@@ -70,20 +80,22 @@ const ValidateProcess = (p: ProcessInfo) => {
   if (priority.length) {
     switch (priority) {
       case "High":
-        sendSlackMessage(
-          `${p.PNAME} (${p.PROCESSID})`,
-          `${p.PNAME} has stalled `,
-          "High",
-          buildInfo(p, priority)
-        );
+        if (process.env.ALERT_ON_STALLED == "yes")
+          sendSlackMessage(
+            undefined,
+            `${p.pname} has stalled `,
+            "High",
+            buildInfo(p, priority)
+          );
         break;
       case "Medium":
-        sendSlackMessage(
-          `${p.PNAME} (${p.PROCESSID})`,
-          `One or more processes completed with errors`,
-          "Medium",
-          buildInfo(p, priority)
-        );
+        if (process.env.ALERT_ON_ERROR == "yes")
+          sendSlackMessage(
+            `${p.pname} (${p.processid})`,
+            `One or more processes completed with errors`,
+            "Medium",
+            buildInfo(p, priority)
+          );
         break;
     }
   }
@@ -99,26 +111,26 @@ const buildInfo = (
     short: true
   },
   {
-    title: "Last known process run at",
-    value: Moment(p.LASTCHECK).format(G.dateTimeFormat),
+    title: "Last known process run",
+    value: timeAgo.format(moment(p.lastcheck).toDate()),
     short: true
   },
   {
     title: "Pending",
-    value: (p.PENDING || 0).toString(),
+    value: (p.pending || 0).toString(),
     short: true
   },
   {
     title: "Errors",
-    value: (p.ERRORS || 0).toString(),
+    value: (p.errors || 0).toString(),
     short: true
   }
 ];
 
 const buildProcmonInfo = (p: ProcessInfo): SlackAttachmentField[] => [
   {
-    title: "Last known process run at",
-    value: Moment(p.LASTCHECK).format(G.dateTimeFormat),
+    title: "Last known process run ",
+    value: timeAgo.format(moment(p.lastcheck).toDate()),
     short: true
   }
 ];

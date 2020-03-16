@@ -1,65 +1,65 @@
 export interface ProcDefType {
-  PROCDEFID: string;
-  PROCNAME: string;
-  CMDLINE: string;
-  PROCMIN: number;
-  PROCCOUNT: number;
-  TASKDESC: string;
-  LASTCHECK: Date;
-  CSERVERID: string;
+  procdefid: string;
+  procname: string;
+  proccmdlin: string;
+  procmin: number;
+  proccount: number;
+  taskdesc: string;
+  lastcheck: Date;
+  cserverid: string;
 }
 
 export interface ProcStatType {
-  PROCDEFID: number;
-  PID: string;
-  PNAME: string;
-  CMDLINE: string;
-  START: Date;
-  STATUS: string;
-  PALIVE: boolean;
-  PELAPSED: number;
-  PKILLED: boolean;
+  procdefid: number;
+  pid: string;
+  pname: string;
+  cmdline: string;
+  start: Date;
+  status: string;
+  palive: boolean;
+  pelapsed: number;
+  plilled: boolean;
 }
 
 export interface EmaintAutoType {
-  CAUTOID: string;
-  CDESCRIP: string;
-  DLASTRUN: Date;
-  DNEXTRUN: Date;
-  NEVERY: number;
-  CINTERVAL: string;
-  CCODE: string;
-  CRUNID: string;
-  STATUS: string;
+  cautoid: string;
+  cdescrip: string;
+  dlastrun: Date;
+  dnextrun: Date;
+  nevery: number;
+  cinterval: string;
+  ccode: string;
+  crunid: string;
+  status: string;
 }
 
 export interface EmaintAutoLogType {
-  CUID: string;
-  TIMESTAMP: string;
-  CAUTOID: string;
-  CAUTODESC: Date;
-  CPROGRAM: string;
-  NLINENO: boolean;
-  NERRNO: number;
-  CERRORMSG: string;
-  CCODE: string;
-  CDETAILS: string;
-  CRUNID: string;
+  cuid: string;
+  timestamp: Date;
+  cautoid: string;
+  cautodesc: Date;
+  cprogram: string;
+  nlineno: boolean;
+  nerrno: number;
+  cerrormsg: string;
+  ccode: string;
+  cdetails: string;
+  crunid: string;
 }
 
 export interface AsyncType {
-  ID: string;
-  TITLE: string;
-  USERNAME: string;
-  SUBMITTED: Date;
-  STARTED: Date;
-  COMPLETED: Date;
-  STATUS: string;
-  LERROR: boolean;
+  id: string;
+  title: string;
+  username: string;
+  submitted: Date;
+  started: Date;
+  completed: Date;
+  status: string;
+  lerror: boolean;
 }
 
 export type AsyncStatus =
-  | "STARTED"
+  | "RUNNING"
   | "PENDING"
   | "COMPLETED"
   | "ERROR"
@@ -69,7 +69,7 @@ export type AsyncStatus =
 export type AutorunStatus =
   | "RUNNING"
   | "PENDING"
-  | "DONE"
+  | "COMPLETED"
   | "ERROR"
   | "STALLED"
   | "UNKNOWN";
